@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: securevault-postgres
+    environment:
+      POSTGRES_DB: securevault
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: SecretSafePasswordWithSalt2026
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    restart: always
+
+  securevault-cpp-agent:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    container_name: securevault-cpp-engine
+    ports:
+      - "9090:9090" # Native execution daemon
+    environment:
+      - ENGINE_PARALLEL_THREADS=16
+    restart: always
+
+  backend-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: securevault-springboot-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+      - securevault-cpp-agent
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/securevault
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: SecretSafePasswordWithSalt2026
+      CPP_ENGINE_HOST: securevault-cpp-agent
+      CPP_ENGINE_PORT: 9090
+    restart: always
+
+volumes:
+  pgdata:

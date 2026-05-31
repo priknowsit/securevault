@@ -1,0 +1,6 @@
+{
+  "name": "SecureVault",
+  "description": "High-performance encrypted storage engine with B-Tree metadata indexing, lock-free reads, and chunked AES-256-GCM encryption.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
